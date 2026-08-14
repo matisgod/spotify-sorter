@@ -42,9 +42,9 @@ The key architectural principle is:
                     │   Extraction Layer   │
                     │                      │
                     │ OAuth + API calls    │
-                    │ Pagination            │
-                    │ Deduplication         │
-                    │ Retry / rate limits   │
+                    │ Pagination           │
+                    │ Deduplication        │
+                    │ Retry / rate limits  │
                     └──────────┬───────────┘
                                │
                                ▼
@@ -67,10 +67,10 @@ The key architectural principle is:
           │  ReccoBeats      │   │    Last.fm       │
           │                  │   │                  │
           │ BPM / tempo      │   │ Genres / tags    │
-          │ Energy            │   │ Artist metadata  │
-          │ Danceability      │   │ Track tags       │
-          │ Valence           │   │                  │
-          │ Acousticness      │   │                  │
+          │ Energy           │   │ Artist metadata  │
+          │ Danceability     │   │ Track tags       │
+          │ Valence          │   │                  │
+          │ Acousticness     │   │                  │
           └─────────┬────────┘   └─────────┬────────┘
                     │                      │
                     └──────────┬───────────┘
@@ -79,9 +79,9 @@ The key architectural principle is:
                     │ Enriched Track Data  │
                     │                      │
                     │ Feature values       │
-                    │ Genres / tags         │
-                    │ Data provenance       │
-                    │ Confidence            │
+                    │ Genres / tags        │
+                    │ Data provenance      │
+                    │ Confidence           │
                     └──────────┬───────────┘
                                │
                                ▼
@@ -241,9 +241,7 @@ There should therefore be one canonical `track` record but three playlist relati
 
 ## Recommended principle
 
-**Do not use Spotify IDs as your internal primary keys.**
-
-Instead:
+Use an internal database-generated ID as the primary key, while enforcing uniqueness on the Spotify track ID. The Spotify ID remains the canonical external identifier used to identify and deduplicate Spotify tracks.
 
 ```text
 tracks
