@@ -3,16 +3,22 @@ flowchart TD
     A([Playlist requires curation])
 
     B[Open Spotify playlist]
-    C[Review each song]
+
+    C[Review each song
+    Time: 60–120 min per 100 songs]
+
     D[Identify song / artist]
 
-    E[Research or recall genre]
+    E[Research or recall genre
+    Time: 60–120 min per 100 songs]
+
     F[Research or recall release year]
 
     G[Assess genre]
     H[Assess era]
 
-    I{Song fits desired<br/>genre / era?}
+    I{Song fits desired
+    genre / era?}
 
     J[Keep song]
     K[Move song to another playlist]
@@ -22,12 +28,29 @@ flowchart TD
 
     N([Curated playlist])
 
-    P1[/Pain point:<br/>Manual song-by-song review<br/>is time-consuming/]
-    P2[/Pain point:<br/>Genre information is fragmented<br/>and inconsistently classified/]
-    P3[/Pain point:<br/>Release dates often require<br/>separate research/]
-    P4[/Pain point:<br/>Genre boundaries can be subjective,<br/>leading to inconsistent decisions/]
-    P5[/Pain point:<br/>Manual playlist movement is<br/>repetitive and error-prone/]
-    P6[/Pain point:<br/>No persistent curation logic —<br/>songs may need to be assessed again/]
+    P1[/Pain point:
+    Manual song-by-song review
+    is time-consuming/]
+
+    P2[/Pain point:
+    Genre information is fragmented
+    and inconsistently classified/]
+
+    P3[/Pain point:
+    Release dates often require
+    separate research/]
+
+    P4[/Pain point:
+    Genre boundaries can be subjective,
+    leading to inconsistent decisions/]
+
+    P5[/Pain point:
+    Manual playlist movement is
+    repetitive and error-prone/]
+
+    P6[/Pain point:
+    No persistent curation logic —
+    songs may need to be assessed again/]
 
     A --> B
     B --> C

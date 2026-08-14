@@ -1,49 +1,100 @@
 ```mermaid
 flowchart TD
-    A([Playlist requires curation])
+    A([100-song playlist requires curation])
 
-    B[Import Spotify playlist]
-    C[Extract Spotify track IDs,<br/>song titles and artist IDs]
+    B[Import Spotify playlist
+    Time: 1–2 min]
 
-    D[Retrieve song metadata]
-    E[Retrieve audio features]
-    F[Retrieve genre information]
-    G[Retrieve release date / year]
+    C[Extract Spotify track IDs,
+    song titles and artist IDs
+    Time: <1 min]
 
-    H[Normalise and consolidate<br/>song-level data]
+    D[Retrieve song metadata
+    Time: 1–2 min]
 
-    I[Classify genre using<br/>genre metadata + track attributes]
-    
-    J[Assign release era<br/>based on release year]
+    E[Retrieve audio features
+    Time: 1–2 min]
 
-    K[Calculate curation attributes:<br/>• Genre<br/>• Era<br/>• BPM<br/>• Energy<br/>• Danceability<br/>• Valence<br/>• Acousticness<br/>• Instrumentalness]
+    F[Retrieve genre information
+    Time: 2–5 min]
 
-    L[Apply genre and era<br/>classification rules]
+    G[Retrieve release date / year
+    Time: 1–2 min]
 
-    M[Group songs by<br/>genre and era]
+    H[Normalise and consolidate
+    song-level data
+    Time: 1–2 min]
 
-    N[Rank songs within groups<br/>using audio similarity and<br/>curation attributes]
+    I[Classify genre using
+    normalised genre + track attributes
+    Time: 2–5 min]
 
-    O[Generate proposed<br/>playlist structure]
+    J[Assign release era
+    based on release year
+    Time: <1 min]
+
+    K[Calculate curation attributes:
+    Genre • Era • BPM • Energy
+    Danceability • Valence • Acousticness
+    Instrumentalness
+    Time: <1 min]
+
+    L[Apply genre and era
+    classification rules
+    Time: <1 min]
+
+    M[Group songs by
+    genre and era
+    Time: <1 min]
+
+    N[Rank songs within groups
+    using audio similarity and
+    curation attributes
+    Time: 1–3 min]
+
+    O[Generate proposed
+    playlist structure
+    Time: <1 min]
 
     P{User approval required?}
 
-    Q[Review recommendations]
-    R[Approve / amend recommendations]
+    Q[Review recommendations
+    Time: 15–30 min]
 
-    S[Create / update<br/>Spotify playlists]
-    T[Store songs, metadata,<br/>attributes and curation results]
+    R[Approve / amend recommendations
+    Time: 5–15 min]
+
+    S[Create / update
+    Spotify playlists
+    Time: 1–3 min]
+
+    T[Store songs, metadata,
+    attributes and curation results
+    Time: <1 min]
 
     U{More playlists to process?}
 
     V([Curated playlists])
 
-    P1[/Benefit:<br/>Metadata and audio features<br/>collected automatically/]
-    P2[/Benefit:<br/>Genre classification becomes<br/>consistent and repeatable/]
-    P3[/Benefit:<br/>Songs are grouped using<br/>explicit genre + era criteria/]
-    P4[/Benefit:<br/>Ranking creates a logical<br/>listening order within groups/]
-    P5[/Control:<br/>Human remains in the loop<br/>for subjective decisions/]
-    P6[/Benefit:<br/>Curation logic and results<br/>are stored for reuse/]
+    P1[/Benefit:
+    Automated metadata and audio
+    feature collection/]
+
+    P2[/Benefit:
+    Genre classification becomes
+    consistent and repeatable/]
+
+    P3[/Benefit:
+    Automated grouping and ranking
+    replaces manual organisation/]
+
+    P4[/Control:
+    Human remains in the loop
+    for subjective decisions/]
+
+    P5[/Benefit:
+    Curation logic and results
+    are stored for reuse/]
 
     A --> B
     B --> C
@@ -85,10 +136,9 @@ flowchart TD
 
     D -.-> P1
     I -.-> P2
-    M -.-> P3
-    N -.-> P4
-    Q -.-> P5
-    T -.-> P6
+    N -.-> P3
+    Q -.-> P4
+    T -.-> P5
 
     classDef process fill:#DCEBFA,stroke:#3B82F6,stroke-width:1.5px,color:#172B4D
     classDef decision fill:#FFF2CC,stroke:#D6A700,stroke-width:1.5px,color:#5C4800
@@ -97,6 +147,6 @@ flowchart TD
 
     class B,C,D,E,F,G,H,I,J,K,L,M,N,O,Q,R,S,T process
     class P,U decision
-    class P1,P2,P3,P4,P5,P6 benefit
+    class P1,P2,P3,P4,P5 benefit
     class A,V startend
 ```
