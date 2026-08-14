@@ -1,135 +1,374 @@
--- Drop tables in dependency order (optional during development)
+-- QUERY TRUNCATED
+-- ============================================================
+-- SPOTIFY MUSIC CURATION DATABASE
+-- ============================================================
+-- WARNING:
+-- This script deletes the existing schema/tables.
+-- Make sure you do not need any existing data before running it.
+-- ============================================================
 
-DROP TABLE IF EXISTS song_artist CASCADE;
-DROP TABLE IF EXISTS library_song CASCADE;
-DROP TABLE IF EXISTS songs CASCADE;
+
+-- ============================================================
+-- 1. DROP EXISTING TABLES
+-- ============================================================
+
+DROP TABLE IF EXISTS ai_song_assignments CASCADE;
+DROP TABLE IF EXISTS ai_runs CASCADE;
+
+DROP TABLE IF EXISTS curated_playlist_songs CASCADE;
+DROP TABLE IF EXISTS curated_playlist_vibes CASCADE;
+DROP TABLE IF EXISTS curated_playlist_eras CASCADE;
+DROP TABLE IF EXISTS curated_playlist_genres CASCADE;
+DROP TABLE IF EXISTS curated_playlist_clusters CASCADE;
+DROP TABLE IF EXISTS curated_playlists CASCADE;
+DROP TABLE IF EXISTS curation_runs CASCADE;
+
+DROP TABLE IF EXISTS cluster_representatives CASCADE;
+DROP TABLE IF EXISTS cluster_genres CASCADE;
+DROP TABLE IF EXISTS cluster_profiles CASCADE;
+DROP TABLE IF EXISTS song_clusters CASCADE;
+DROP TABLE IF EXISTS clusters CASCADE;
+DROP TABLE IF EXISTS clustering_runs CASCADE;
+
+DROP TABLE IF EXISTS song_metadata CASCADE;
+DROP TABLE IF EXISTS song_audio_features CASCADE;
+
+DROP TABLE IF EXISTS song_genres CASCADE;
+DROP TABLE IF EXISTS genres CASCADE;
+
+DROP TABLE IF EXISTS song_artists CASCADE;
 DROP TABLE IF EXISTS artists CASCADE;
+
+DROP TABLE IF EXISTS songs CASCADE;
 DROP TABLE IF EXISTS albums CASCADE;
-DROP TABLE IF EXISTS libraries CASCADE;
+
+DROP TABLE IF EXISTS source_playlist_songs CASCADE;
+DROP TABLE IF EXISTS source_playlists CASCADE;
+
 DROP TABLE IF EXISTS users CASCADE;
 
--------------------------------------------------------
--- Users
--------------------------------------------------------
+
+-- ============================================================
+-- 2. USERS
+-- ============================================================
 
 CREATE TABLE users (
-    user_id SERIAL PRIMARY KEY,
-    username VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id BIGSERIAL PRIMARY KEY,
+
+    spotify_user_id TEXT NOT NULL UNIQUE,
+
+    display_name TEXT,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--------------------------------------------------------
--- Playlists
--------------------------------------------------------
 
-CREATE TABLE playlists (
-    playlist_id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    playlist_name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_playlist_user
-        FOREIGN KEY (user_id)
-        REFERENCES users(user_id)
-        ON DELETE CASCADE
-);
-
--------------------------------------------------------
--- Albums
--------------------------------------------------------
+-- ============================================================
+-- 3. ALBUMS
+-- ============================================================
 
 CREATE TABLE albums (
-    album_id SERIAL PRIMARY KEY,
-    album_name VARCHAR(255) NOT NULL,
-    release_year INTEGER,
-    spotify_album_id VARCHAR(50) UNIQUE
+    id BIGSERIAL PRIMARY KEY,
+
+    spotify_album_id TEXT NOT NULL UNIQUE,
+
+    name TEXT NOT NULL,
+
+    release_date DATE,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--------------------------------------------------------
--- Artists
--------------------------------------------------------
+
+-- ============================================================
+-- 4. ARTISTS
+-- ============================================================
 
 CREATE TABLE artists (
-    artist_id SERIAL PRIMARY KEY,
-    artist_name VARCHAR(255) NOT NULL,
-    spotify_artist_id VARCHAR(50) UNIQUE
+    id BIGSERIAL PRIMARY KEY,
+
+    spotify_artist_id TEXT UNIQUE,
+
+    name TEXT NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--------------------------------------------------------
--- Songs
--------------------------------------------------------
+
+-- ============================================================
+-- 5. SONGS
+-- ============================================================
 
 CREATE TABLE songs (
-    song_id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
 
-    album_id INTEGER,
+    spotify_track_id TEXT NOT NULL UNIQUE,
 
-    song_name VARCHAR(255) NOT NULL,
+    isrc TEXT,
+
+    song_name TEXT NOT NULL,
+
     duration_ms INTEGER,
 
-    spotify_track_id VARCHAR(50) UNIQUE,
+    release_date DATE,
 
-    CONSTRAINT fk_song_album
-        FOREIGN KEY (album_id)
-        REFERENCES albums(album_id)
-        ON DELETE SET NULL
+    release_year INTEGER,
+
+    album_id BIGINT REFERENCES albums(id)
+        ON DELETE SET NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT valid_duration
+        CHECK (duration_ms IS NULL OR duration_ms >= 0),
+
+    CONSTRAINT valid_release_year
+        CHECK (
+            release_year IS NULL
+            OR release_year BETWEEN 1800 AND 2200
+        )
 );
 
--------------------------------------------------------
--- Playlist <-> Songs (Many-to-Many)
--------------------------------------------------------
 
-CREATE TABLE playlist_song (
-    playlist_id INTEGER NOT NULL,
-    song_id INTEGER NOT NULL,
-    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+-- ============================================================
+-- 6. SONG ↔ ARTIST
+-- ============================================================
 
-    PRIMARY KEY (playlist_id, song_id),
-
-    CONSTRAINT fk_ps_playlist
-        FOREIGN KEY (playlist_id)
-        REFERENCES playlists(playlist_id)
+CREATE TABLE song_artists (
+    song_id BIGINT NOT NULL
+        REFERENCES songs(id)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_ps_song
-        FOREIGN KEY (song_id)
-        REFERENCES songs(song_id)
-        ON DELETE CASCADE
-);
-
--------------------------------------------------------
--- Song <-> Artist (Many-to-Many)
--------------------------------------------------------
-
-CREATE TABLE song_artist (
-    song_id INTEGER NOT NULL,
-    artist_id INTEGER NOT NULL,
-
-    PRIMARY KEY (song_id, artist_id),
-
-    CONSTRAINT fk_sa_song
-        FOREIGN KEY (song_id)
-        REFERENCES songs(song_id)
+    artist_id BIGINT NOT NULL
+        REFERENCES artists(id)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_sa_artist
-        FOREIGN KEY (artist_id)
-        REFERENCES artists(artist_id)
-        ON DELETE CASCADE
+    artist_role TEXT,
+
+    PRIMARY KEY (song_id, artist_id)
 );
 
--------------------------------------------------------
--- Helpful indexes
--------------------------------------------------------
 
-CREATE INDEX idx_playlist_user
-ON playlists(user_id);
+-- ============================================================
+-- 7. GENRES
+-- ============================================================
 
-CREATE INDEX idx_playlist_song_song
-ON playlist_song(song_id);
+CREATE TABLE genres (
+    id BIGSERIAL PRIMARY KEY,
 
-CREATE INDEX idx_song_album
-ON songs(album_id);
+    name TEXT NOT NULL UNIQUE
+);
 
-CREATE INDEX idx_song_artist_artist
-ON song_artist(artist_id);
+
+-- ============================================================
+-- 8. SONG ↔ GENRE
+-- ============================================================
+
+CREATE TABLE song_genres (
+    song_id BIGINT NOT NULL
+        REFERENCES songs(id)
+        ON DELETE CASCADE,
+
+    genre_id BIGINT NOT NULL
+        REFERENCES genres(id)
+        ON DELETE CASCADE,
+
+    source TEXT,
+
+    PRIMARY KEY (song_id, genre_id)
+);
+
+
+-- ============================================================
+-- 9. SOURCE SPOTIFY PLAYLISTS
+-- ============================================================
+-- These are playlists imported from Spotify.
+-- They are NOT the AI-generated curated playlists.
+-- ============================================================
+
+CREATE TABLE source_playlists (
+    id BIGSERIAL PRIMARY KEY,
+
+    spotify_playlist_id TEXT NOT NULL UNIQUE,
+
+    user_id BIGINT NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    name TEXT NOT NULL,
+
+    description TEXT,
+
+    snapshot_id TEXT,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+
+-- ============================================================
+-- 10. SOURCE PLAYLIST ↔ SONG
+-- ============================================================
+-- Allows the same song to appear multiple times in a playlist.
+-- Position therefore belongs to the relationship, not the song.
+-- ============================================================
+
+CREATE TABLE source_playlist_songs (
+    playlist_id BIGINT NOT NULL
+        REFERENCES source_playlists(id)
+        ON DELETE CASCADE,
+
+    song_id BIGINT NOT NULL
+        REFERENCES songs(id)
+        ON DELETE CASCADE,
+
+    position INTEGER NOT NULL,
+
+    added_at TIMESTAMPTZ,
+
+    PRIMARY KEY (playlist_id, position),
+
+    CONSTRAINT valid_position
+        CHECK (position >= 0)
+);
+
+
+-- ============================================================
+-- 11. SONG AUDIO FEATURES
+-- ============================================================
+
+CREATE TABLE song_audio_features (
+    id BIGSERIAL PRIMARY KEY,
+
+    song_id BIGINT NOT NULL
+        REFERENCES songs(id)
+        ON DELETE CASCADE,
+
+    tempo NUMERIC,
+
+    energy NUMERIC,
+
+    danceability NUMERIC,
+
+    valence NUMERIC,
+
+    acousticness NUMERIC,
+
+    instrumentalness NUMERIC,
+
+    speechiness NUMERIC,
+
+    liveness NUMERIC,
+
+    loudness NUMERIC,
+
+    source TEXT,
+
+    retrieved_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    UNIQUE (song_id, source)
+);
+
+
+-- ============================================================
+-- 12. DERIVED SONG METADATA
+-- ============================================================
+
+CREATE TABLE song_metadata (
+    song_id BIGINT PRIMARY KEY
+        REFERENCES songs(id)
+        ON DELETE CASCADE,
+
+    era TEXT,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+
+-- ============================================================
+-- 13. CLUSTERING RUNS
+-- ============================================================
+-- Represents one execution/configuration of K-Means.
+-- ============================================================
+
+CREATE TABLE clustering_runs (
+    id BIGSERIAL PRIMARY KEY,
+
+    name TEXT,
+
+    algorithm TEXT NOT NULL DEFAULT 'kmeans',
+
+    k INTEGER NOT NULL,
+
+    features_used JSONB NOT NULL,
+
+    normalisation_method TEXT,
+
+    random_seed INTEGER,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT valid_k
+        CHECK (k > 0)
+);
+
+
+-- ============================================================
+-- 14. CLUSTERS
+-- ============================================================
+
+CREATE TABLE clusters (
+    id BIGSERIAL PRIMARY KEY,
+
+    clustering_run_id BIGINT NOT NULL
+        REFERENCES clustering_runs(id)
+        ON DELETE CASCADE,
+
+    cluster_number INTEGER NOT NULL,
+
+    song_count INTEGER,
+
+    UNIQUE (clustering_run_id, cluster_number),
+
+    CONSTRAINT valid_cluster_number
+        CHECK (cluster_number >= 0),
+
+    CONSTRAINT valid_song_count
+        CHECK (song_count IS NULL OR song_count >= 0)
+);
+
+
+-- ============================================================
+-- 15. SONG ↔ CLUSTER
+-- ============================================================
+-- A song can belong to different clusters in different
+-- clustering runs.
+-- ============================================================
+
+CREATE TABLE song_clusters (
+    clustering_run_id BIGINT NOT NULL
+        REFERENCES clustering_runs(id)
+        ON DELETE CASCADE,
+
+    cluster_id BIGINT NOT NULL
+        REFERENCES clusters(id)
+        ON DELETE CASCADE,
+
+    song_id BIGINT NOT NULL
+        REFERENCES songs(id)
+        ON DELETE CASCADE,
+
+    distance_from_centroid NUMERIC,
+
+    PRIMARY KEY (clustering_run_id, song_id)
+);
+
+
+-- ============================================================
+-- 16. CLUSTER PROFILES
+-- =====================================
